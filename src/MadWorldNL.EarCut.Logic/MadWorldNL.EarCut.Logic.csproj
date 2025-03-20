@@ -4,6 +4,32 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <RootNamespace>MadWorldNL.EarCut</RootNamespace>
+        <AssemblyName>$(RootNamespace)</AssemblyName>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageId>MadWorldNL.EarCut</PackageId>
+        <Version>0.1.0</Version>
+        <Description>
+            C# implementation of earcut polygon triangulation library
+        </Description>
+        <PackageProjectUrl>https://github.com/MadWorldNL/EarCut</PackageProjectUrl>
+        <PackageIcon>MadWorldLogo_Icon.png</PackageIcon>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <RepositoryUrl>https://github.com/MadWorldNL/EarCut</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageReleaseNotes>
+            1. Add earcut algorithm
+        </PackageReleaseNotes>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageTags>MadWorldNL, Libraries, ASP.NET Core, EarCut</PackageTags>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="images\MadWorldLogo_Icon.png" Pack="true" PackagePath="\"/>
+        <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
 
 </Project>
