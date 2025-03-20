@@ -1,21 +1,22 @@
+using System.Numerics;
 using System.Text;
 
 namespace MadWorldNL.EarCut.Logic;
 
-internal class Node
+internal class Node<TVertex> where TVertex : INumber<TVertex>, IMinMaxValue<TVertex>
 {
     internal readonly int I;
-    internal readonly double X;
-    internal readonly double Y;
-    internal double Z;
+    internal readonly TVertex X;
+    internal readonly TVertex Y;
+    internal TVertex Z;
     internal bool Steiner;
 
-    internal Node? Prev;
-    internal Node? Next;
-    internal Node? PrevZ;
-    internal Node? NextZ;
+    internal Node<TVertex>? Prev;
+    internal Node<TVertex>? Next;
+    internal Node<TVertex>? PrevZ;
+    internal Node<TVertex>? NextZ;
 
-    internal Node(int i, double x, double y)
+    internal Node(int i, TVertex x, TVertex y)
     {
         // vertex index in coordinates array
         I = i;
@@ -29,7 +30,7 @@ internal class Node
         Next = null;
 
         // z-order curve value
-        Z = double.MinValue;
+        Z = TVertex.MinValue;
 
         // previous and next nodes in z-order
         PrevZ = null;
@@ -57,7 +58,7 @@ internal class Node
         return sb.ToString();
     }
     
-    private static string ToString(Node? node){
+    private static string ToString(Node<TVertex>? node){
         if(node == null){
             return "null";
         }
