@@ -18,8 +18,10 @@ and [Triangulation by Ear Clipping](http://www.geometrictools.com/Documentation/
 
 Download the latest version:
 
-**TODO**
-
+```bash
+dotnet add package MadWorldNL.EarCut
+```
+    
 #### Usage
 
 ```csharp
