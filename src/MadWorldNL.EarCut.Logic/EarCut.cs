@@ -5,6 +5,19 @@ using MadWorldNL.EarCut.Logic.Extensions;
 
 namespace MadWorldNL.EarCut.Logic;
 
+public static class EarCut
+{
+    public static List<int> Calculate(double[]? data, int[]? holeIndices = null, int dim = 2)
+    {
+        return EarCut<double>.Calculate(data, holeIndices, dim);
+    }
+    
+    public static List<int> Calculate(float[]? data, int[]? holeIndices = null, int dim = 2)
+    {
+        return EarCut<float>.Calculate(data, holeIndices, dim);
+    }
+}
+
 public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxValue<TVertex>
 {
     /// <summary>
