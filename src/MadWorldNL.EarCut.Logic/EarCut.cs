@@ -15,7 +15,7 @@ public static class EarCut
         var hasHoles = holeIndices is { Length: > 0 };
         var outerLen = hasHoles ? holeIndices![0] * dim : data.Length;
 
-        Node? outerNode = LinkedList(data, 0, outerLen, dim, true);
+        var outerNode = LinkedList(data, 0, outerLen, dim, true);
 
         List<int> triangles = [];
 
