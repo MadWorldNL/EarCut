@@ -1,3 +1,4 @@
+// ReSharper disable CognitiveComplexity
 using MadWorldNL.EarCut.Logic.Extensions;
 
 namespace MadWorldNL.EarCut.Logic;
@@ -69,7 +70,7 @@ public static class EarCut
         if (pass == int.MinValue && invSize.NotEqual(double.MinValue))
             IndexCurve(ear, minX, minY, invSize);
 
-        Node stop = ear;
+        var stop = ear;
 
         // iterate through ears, slicing them one by one
         while (ear!.Prev != ear.Next) {
@@ -78,9 +79,9 @@ public static class EarCut
 
             if (invSize.NotEqual(double.MinValue) ? IsEarHashed(ear, minX, minY, invSize) : IsEar(ear)) {
                 // cut off the triangle
-                triangles.Add(prev.I / dim);
+                triangles.Add(prev!.I / dim);
                 triangles.Add(ear.I / dim);
-                triangles.Add(next.I / dim);
+                triangles.Add(next!.I / dim);
 
                 RemoveNode(ear);
 
@@ -121,15 +122,15 @@ public static class EarCut
         // look for a valid diagonal that divides the polygon into two
         var a = start;
         do {
-            var b = a.Next.Next;
+            var b = a!.Next!.Next;
             while (b != a.Prev) {
-                if (a.I != b.I && IsValidDiagonal(a, b)) {
+                if (a.I != b!.I && IsValidDiagonal(a, b)) {
                     // split the polygon in two by the diagonal
-                    Node c = SplitPolygon(a, b);
+                    var c = SplitPolygon(a, b);
 
                     // Filter collinear points around the cuts
                     a = FilterPoints(a, a.Next);
-                    c = FilterPoints(c, c.Next);
+                    c = FilterPoints(c, c.Next)!;
 
                     // run ear cut on each half
                     EarCutLinked(a, triangles, dim, minX, minY, size, int.MinValue);
@@ -145,19 +146,19 @@ public static class EarCut
     private static bool IsValidDiagonal(Node a, Node b) {
         //return a.next.i != b.i && a.prev.i != b.i && !intersectsPolygon(a, b) && locallyInside(a, b) && locallyInside(b, a) && middleInside(a, b);
 
-        return a.Next.I != b.I && a.Prev.I != b.I && !IntersectsPolygon(a, b) && // doesn't intersect other edges
+        return a.Next!.I != b.I && a.Prev!.I != b.I && !IntersectsPolygon(a, b) && // doesn't intersect other edges
                (LocallyInside(a, b) && LocallyInside(b, a) && MiddleInside(a, b) && // locally visible
-                (Area(a.Prev, a, b.Prev) != 0 || Area(a, b.Prev, b) != 0) || // does not create opposite-facing sectors
-                Equals(a, b) && Area(a.Prev, a, a.Next) > 0 && Area(b.Prev, b, b.Next) > 0); // special zero-length case
+                (Area(a.Prev, a, b.Prev!) != 0 || Area(a, b.Prev!, b) != 0) || // does not create opposite-facing sectors
+                Equals(a, b) && Area(a.Prev, a, a.Next) > 0 && Area(b.Prev!, b, b.Next!) > 0); // special zero-length case
     }
     
     private static bool MiddleInside(Node a, Node b) {
-        Node p = a;
-        bool inside = false;
-        double px = (a.X + b.X) / 2;
-        double py = (a.Y + b.Y) / 2;
+        var p = a;
+        var inside = false;
+        var px = (a.X + b.X) / 2;
+        var py = (a.Y + b.Y) / 2;
         do {
-            if (((p.Y > py) != (p.Next.Y > py)) && (px < (p.Next.X - p.X) * (py - p.Y) / (p.Next.Y - p.Y) + p.X))
+            if (((p.Y > py) != (p.Next!.Y > py)) && (px < (p.Next.X - p.X) * (py - p.Y) / (p.Next.Y - p.Y) + p.X))
                 inside = !inside;
             p = p.Next;
         } while (p != a);
@@ -168,9 +169,9 @@ public static class EarCut
     private static bool IntersectsPolygon(Node a, Node b) {
         Node p = a;
         do {
-            if (p.I != a.I && p.Next.I != a.I && p.I != b.I && p.Next.I != b.I && Intersects(p, p.Next, a, b))
+            if (p.I != a.I && p.Next!.I != a.I && p.I != b.I && p.Next.I != b.I && Intersects(p, p.Next, a, b))
                 return true;
-            p = p.Next;
+            p = p.Next!;
         } while (p != a);
 
         return false;
@@ -211,7 +212,7 @@ public static class EarCut
     private static Node CureLocalIntersections(Node? start, List<int> triangles, int dim) {
         var p = start;
         do {
-            Node a = p.Prev, b = p.Next.Next;
+            Node a = p!.Prev!, b = p.Next!.Next!;
 
             if (!Equals(a, b) && Intersects(a, p, p.Next, b) && LocallyInside(a, b) && LocallyInside(b, a)) {
 
@@ -228,31 +229,31 @@ public static class EarCut
             p = p.Next;
         } while (p != start);
 
-        return FilterPoints(p, null);
+        return FilterPoints(p, null)!;
     }
     
     private static bool IsEar(Node ear) {
-        Node a = ear.Prev, b = ear, c = ear.Next;
+        Node a = ear.Prev!, b = ear, c = ear.Next!;
 
         if (Area(a, b, c) >= 0)
             return false; // reflex, can't be an ear
 
         // now make sure we don't have other points inside the potential ear
-        Node p = ear.Next.Next;
+        var p = ear.Next!.Next!;
 
         while (p != ear.Prev) {
-            if (PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, p.X, p.Y) && Area(p.Prev, p, p.Next) >= 0)
+            if (PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, p.X, p.Y) && Area(p.Prev!, p, p.Next!) >= 0)
                 return false;
-            p = p.Next;
+            p = p.Next!;
         }
 
         return true;
     }
     
     private static bool IsEarHashed(Node ear, double minX, double minY, double invSize) {
-        var a = ear.Prev;
+        var a = ear.Prev!;
         var b = ear;
-        var c = ear.Next;
+        var c = ear.Next!;
 
         if (Area(a, b, c) >= 0)
             return false; // reflex, can't be an ear
@@ -262,33 +263,33 @@ public static class EarCut
                 maxTx = a.X > b.X ? (a.X > c.X ? a.X : c.X) : (b.X > c.X ? b.X : c.X), maxTy = a.Y > b.Y ? (a.Y > c.Y ? a.Y : c.Y) : (b.Y > c.Y ? b.Y : c.Y);
 
         // z-order range for the current triangle bbox;
-        double minZ = ZOrder(minTx, minTy, minX, minY, invSize);
-        double maxZ = ZOrder(maxTx, maxTy, minX, minY, invSize);
+        var minZ = ZOrder(minTx, minTy, minX, minY, invSize);
+        var maxZ = ZOrder(maxTx, maxTy, minX, minY, invSize);
 
         // first look for points inside the triangle in increasing z-order
-        Node p = ear.PrevZ;
-        Node n = ear.NextZ;
+        var p = ear.PrevZ;
+        var n = ear.NextZ;
 
         while (p != null && p.Z >= minZ && n != null && n.Z <= maxZ) {
-            if (p != ear.Prev && p != ear.Next && PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, p.X, p.Y) && Area(p.Prev, p, p.Next) >= 0)
+            if (p != ear.Prev && p != ear.Next && PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, p.X, p.Y) && Area(p.Prev!, p, p.Next!) >= 0)
                 return false;
             p = p.PrevZ;
 
-            if (n != ear.Prev && n != ear.Next && PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, n.X, n.Y) && Area(n.Prev, n, n.Next) >= 0)
+            if (n != ear.Prev && n != ear.Next && PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, n.X, n.Y) && Area(n.Prev!, n, n.Next!) >= 0)
                 return false;
             n = n.NextZ;
         }
 
         // look for remaining points in decreasing z-order
         while (p != null && p.Z >= minZ) {
-            if (p != ear.Prev && p != ear.Next && PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, p.X, p.Y) && Area(p.Prev, p, p.Next) >= 0)
+            if (p != ear.Prev && p != ear.Next && PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, p.X, p.Y) && Area(p.Prev!, p, p.Next!) >= 0)
                 return false;
             p = p.PrevZ;
         }
 
         // look for remaining points in increasing z-order
         while (n != null && n.Z <= maxZ) {
-            if (n != ear.Prev && n != ear.Next && PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, n.X, n.Y) && Area(n.Prev, n, n.Next) >= 0)
+            if (n != ear.Prev && n != ear.Next && PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, n.X, n.Y) && Area(n.Prev!, n, n.Next!) >= 0)
                 return false;
             n = n.NextZ;
         }
@@ -316,55 +317,55 @@ public static class EarCut
     }
     
     private static void IndexCurve(Node start, double minX, double minY, double invSize) {
-        Node p = start;
+        var p = start;
         do {
-            if (p.Z == Double.MinValue)
+            if (p!.Z.Equal(double.MinValue))
                 p.Z = ZOrder(p.X, p.Y, minX, minY, invSize);
             p.PrevZ = p.Prev;
             p.NextZ = p.Next;
             p = p.Next;
         } while (p != start);
 
-        p.PrevZ.NextZ = null;
+        p.PrevZ!.NextZ = null;
         p.PrevZ = null;
 
         SortLinked(p);
     }
     
-    private static Node SortLinked(Node list) {
-        int inSize = 1;
+    private static void SortLinked(Node? list) {
+        var inSize = 1;
 
         int numMerges;
         do {
-            Node p = list;
+            var p = list;
             list = null;
-            Node tail = null;
+            Node? tail = null;
             numMerges = 0;
 
             while (p != null) {
                 numMerges++;
-                Node q = p;
-                int pSize = 0;
-                for (int i = 0; i < inSize; i++) {
+                var q = p;
+                var pSize = 0;
+                for (var i = 0; i < inSize; i++) {
                     pSize++;
                     q = q.NextZ;
                     if (q == null)
                         break;
                 }
 
-                int qSize = inSize;
+                var qSize = inSize;
 
                 while (pSize > 0 || (qSize > 0 && q != null)) {
                     Node e;
                     if (pSize == 0) {
-                        e = q;
-                        q = q.NextZ;
+                        e = q!;
+                        q = q!.NextZ;
                         qSize--;
                     } else if (qSize == 0 || q == null) {
-                        e = p;
-                        p = p.NextZ;
+                        e = p!;
+                        p = p!.NextZ;
                         pSize--;
-                    } else if (p.Z <= q.Z) {
+                    } else if (p!.Z <= q.Z) {
                         e = p;
                         p = p.NextZ;
                         pSize--;
@@ -386,24 +387,22 @@ public static class EarCut
                 p = q;
             }
 
-            tail.NextZ = null;
+            tail!.NextZ = null;
             inSize *= 2;
 
         } while (numMerges > 1);
-
-        return list;
     }
     
     private static Node EliminateHoles(double[] data, int[]? holeIndices, Node outerNode, int dim)
     {
         var queue = new List<Node>();
 
-        int len = holeIndices.Length;
-        for (int i = 0; i < len; i++) {
-            int start = holeIndices[i] * dim;
-            int end = i < len - 1 ? holeIndices[i + 1] * dim : data.Length;
-            Node list = LinkedList(data, start, end, dim, false);
-            if (list == list.Next)
+        var len = holeIndices?.Length ?? 0;
+        for (var i = 0; i < len; i++) {
+            var start = holeIndices![i] * dim;
+            var end = i < len - 1 ? holeIndices[i + 1] * dim : data.Length;
+            var list = LinkedList(data, start, end, dim, false);
+            if (list == list!.Next)
                 list.Steiner = true;
             queue.Add(GetLeftmost(list));
         }
@@ -426,7 +425,7 @@ public static class EarCut
         foreach (var node in queue)
         {
             EliminateHole(node, outerNode);
-            outerNode = FilterPoints(outerNode, outerNode.Next);
+            outerNode = FilterPoints(outerNode, outerNode.Next)!;
         }
 
         return outerNode;
@@ -443,10 +442,10 @@ public static class EarCut
         do {
             again = false;
 
-            if (!p.Steiner && Equals(p, p.Next) || Area(p.Prev, p, p.Next) == 0) {
+            if (!p!.Steiner && Equals(p, p.Next) || Area(p.Prev!, p, p.Next!) == 0) {
                 RemoveNode(p);
                 p = end = p.Prev;
-                if (p == p.Next)
+                if (p == p!.Next)
                     break;
                 again = true;
             } else {
@@ -457,7 +456,12 @@ public static class EarCut
         return end;
     }
     
-    private static bool Equals(Node p1, Node p2) {
+    private static bool Equals(Node? p1, Node? p2) {
+        if (p1 == null || p2 == null)
+        {
+            return false;
+        }
+        
         return p1.X.Equal(p2.X) && p1.Y.Equal(p2.Y);
     }
     
@@ -477,21 +481,21 @@ public static class EarCut
     }
     
     private static Node SplitPolygon(Node a, Node b) {
-        Node a2 = new Node(a.I, a.X, a.Y);
-        Node b2 = new Node(b.I, b.X, b.Y);
-        Node an = a.Next;
-        Node bp = b.Prev;
+        var a2 = new Node(a.I, a.X, a.Y);
+        var b2 = new Node(b.I, b.X, b.Y);
+        var an = a.Next;
+        var bp = b.Prev;
 
         a.Next = b;
         b.Prev = a;
 
         a2.Next = an;
-        an.Prev = a2;
+        an!.Prev = a2;
 
         b2.Next = a2;
         a2.Prev = b2;
 
-        bp.Next = b2;
+        bp!.Next = b2;
         b2.Prev = bp;
 
         return b2;
@@ -510,7 +514,7 @@ public static class EarCut
         // the left;
         // segment's endpoint with lesser x will be potential connection point
         do {
-            if (hy <= p.Y && hy >= p.Next.Y) {
+            if (hy <= p!.Y && hy >= p.Next!.Y) {
                 double x = p.X + (hy - p.Y) * (p.Next.X - p.X) / (p.Next.Y - p.Y);
                 if (x <= hx && x > qx) {
                     qx = x;
@@ -546,7 +550,7 @@ public static class EarCut
         p = m;
 
         do {
-            if (hx >= p.X && p.X >= mx && PointInTriangle(hy < my ? hx : qx, hy, mx, my, hy < my ? qx : hx, hy, p.X, p.Y))
+            if (hx >= p!.X && p.X >= mx && PointInTriangle(hy < my ? hx : qx, hy, mx, my, hy < my ? qx : hx, hy, p.X, p.Y))
             {
                 var tan = Math.Abs(hy - p.Y) / (hx - p.X);
 
@@ -563,13 +567,13 @@ public static class EarCut
     }
     
     private static bool LocallyInside(Node a, Node b) {
-        return Area(a.Prev, a, a.Next) < 0 ? Area(a, b, a.Next) >= 0 && Area(a, a.Prev, b) >= 0 : Area(a, b, a.Prev) < 0 || Area(a, a.Next, b) < 0;
+        return Area(a.Prev!, a, a.Next!) < 0 ? Area(a, b, a.Next!) >= 0 && Area(a, a.Prev!, b) >= 0 : Area(a, b, a.Prev!) < 0 || Area(a, a.Next!, b) < 0;
     }
     
     // whether sector in vertex m contains sector in vertex p in the same
     // coordinates
     private static bool SectorContainsSector(Node m, Node p) {
-        return Area(m.Prev, m, p.Prev) < 0 && Area(p.Next, m, m.Next) < 0;
+        return Area(m.Prev!, m, p.Prev!) < 0 && Area(p.Next!, m, m.Next!) < 0;
     }
     
     private static bool PointInTriangle(double ax, double ay, double bx, double by, double cx, double cy, double px, double py) {
@@ -578,10 +582,10 @@ public static class EarCut
     }
     
     private static Node GetLeftmost(Node start) {
-        Node p = start;
-        Node leftmost = start;
+        var p = start;
+        var leftmost = start;
         do {
-            if (p.X < leftmost.X || (p.X.Equal(leftmost.X) && p.Y < leftmost.Y))
+            if (p!.X < leftmost.X || (p.X.Equal(leftmost.X) && p.Y < leftmost.Y))
                 leftmost = p;
             p = p.Next;
         } while (p != start);
@@ -608,8 +612,8 @@ public static class EarCut
     }
     
     private static void RemoveNode(Node p) {
-        p.Next.Prev = p.Prev;
-        p.Prev.Next = p.Next;
+        p.Next!.Prev = p.Prev;
+        p.Prev!.Next = p.Next;
 
         if (p.PrevZ != null) {
             p.PrevZ.NextZ = p.NextZ;
@@ -628,7 +632,7 @@ public static class EarCut
         } else {
             p.Next = last.Next;
             p.Prev = last;
-            last.Next.Prev = p;
+            last.Next!.Prev = p;
             last.Next = p;
         }
         return p;
