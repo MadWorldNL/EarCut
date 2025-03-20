@@ -4,54 +4,54 @@ namespace MadWorldNL.EarCut.Logic;
 
 internal class Node
 {
-    internal int i;
-    internal double x;
-    internal double y;
-    internal double z;
-    internal bool steiner;
+    internal readonly int I;
+    internal readonly double X;
+    internal readonly double Y;
+    internal double Z;
+    internal bool Steiner;
 
-    internal Node? prev;
-    internal Node? next;
-    internal Node? prevZ;
-    internal Node? nextZ;
+    internal Node? Prev;
+    internal Node? Next;
+    internal Node? PrevZ;
+    internal Node? NextZ;
 
     internal Node(int i, double x, double y)
     {
-        // vertice index in coordinates array
-        this.i = i;
+        // vertex index in coordinates array
+        I = i;
 
         // vertex coordinates
-        this.x = x;
-        this.y = y;
+        X = x;
+        Y = y;
 
-        // previous and next vertice nodes in a polygon ring
-        this.prev = null;
-        this.next = null;
+        // previous and next vertex nodes in a polygon ring
+        Prev = null;
+        Next = null;
 
         // z-order curve value
-        this.z = double.MinValue;
+        Z = double.MinValue;
 
         // previous and next nodes in z-order
-        this.prevZ = null;
-        this.nextZ = null;
+        PrevZ = null;
+        NextZ = null;
 
         // indicates whether this is a steiner point
-        this.steiner = false;
+        Steiner = false;
     }
 
     public override string ToString()
     {
         var sb = new StringBuilder();
         sb.Append("{i: ")
-            .Append(i)
+            .Append(I)
             .Append(", x: ")
-            .Append(x)
+            .Append(X)
             .Append(", y: ")
-            .Append(y)
+            .Append(Y)
             .Append(", prev: ")
-            .Append(ToString(prev))
+            .Append(ToString(Prev))
             .Append(", next: ")
-            .Append(ToString(next))
+            .Append(ToString(Next))
             .Append("}");
         
         return sb.ToString();
@@ -61,6 +61,6 @@ internal class Node
         if(node == null){
             return "null";
         }
-        return "{i: " + node.i + ", x: " + node.x + ", y: " + node.y + "}";
+        return "{i: " + node.I + ", x: " + node.X + ", y: " + node.Y + "}";
     }
 }
