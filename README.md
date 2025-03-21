@@ -1,3 +1,5 @@
+[![.NET build & test](https://github.com/MadWorldNL/EarCut/actions/workflows/dotnet.yml/badge.svg?branch=main)](https://github.com/MadWorldNL/EarCut/actions/workflows/dotnet.yml)
+
 ## MadWorldNL EarCut
 
 This triangulation library is based on the java version located in [earcut4j/earcut4j](https://github.com/earcut4j/earcut4j/). Earcut4j is based on the javascript version located in [@mapbox/earcut](https://github.com/mapbox/earcut)
