@@ -12,6 +12,8 @@
     <PropertyGroup>
         <PackageId>MadWorldNL.EarCut</PackageId>
         <Version>0.2.0</Version>
+        <Authors>MadWorldNL</Authors>
+        <Owners>MadWorldNL</Owners>
         <Description>
             C# implementation of earcut polygon triangulation library
         </Description>
