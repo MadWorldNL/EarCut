@@ -21,7 +21,8 @@
         <RepositoryUrl>https://github.com/MadWorldNL/EarCut</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageReleaseNotes>
-            1. Add earcut algorithm
+            v0.2.0: Add support for other number types
+            v0.1.0: Add earcut algorithm
         </PackageReleaseNotes>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageTags>MadWorldNL, Libraries, ASP.NET Core, EarCut</PackageTags>
