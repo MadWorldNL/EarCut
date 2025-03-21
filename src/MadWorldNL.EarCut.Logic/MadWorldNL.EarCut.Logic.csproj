@@ -11,7 +11,7 @@
 
     <PropertyGroup>
         <PackageId>MadWorldNL.EarCut</PackageId>
-        <Version>0.2.0</Version>
+        <Version>0.3.0</Version>
         <Authors>MadWorldNL</Authors>
         <Owners>MadWorldNL</Owners>
         <Description>
@@ -23,6 +23,7 @@
         <RepositoryUrl>https://github.com/MadWorldNL/EarCut</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageReleaseNotes>
+            v0.3.0: Refactor Calculate Methode name into Tessellate Methode
             v0.2.0: Add support for other number types
             v0.1.0: Add earcut algorithm
         </PackageReleaseNotes>
