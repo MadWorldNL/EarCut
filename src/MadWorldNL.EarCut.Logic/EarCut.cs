@@ -1,11 +1,47 @@
 // ReSharper disable CognitiveComplexity
+
+using System.Numerics;
 using MadWorldNL.EarCut.Logic.Extensions;
 
 namespace MadWorldNL.EarCut.Logic;
 
 public static class EarCut
 {
-    public static List<int> Calculate(double[]? data, int[]? holeIndices = null, int dim = 2) 
+    /// <summary>
+    /// Triangulates the given polygon
+    /// </summary>
+    /// <param name="data">is a flat array of vertex coordinates like [x0,y0, x1,y1, x2,y2, ...].</param>
+    /// <param name="holeIndices">is an array of hole indices if any (e.g. [5, 8] for a 12-vertex input would mean one hole with vertices 5-7 and another with 8-11).</param>
+    /// <param name="dim">is the number of coordinates per vertex in the input array</param>
+    /// <returns>List containing groups of three vertex indices in the resulting array forms a triangle.</returns>
+    public static List<int> Calculate(double[]? data, int[]? holeIndices = null, int dim = 2)
+    {
+        return EarCut<double>.Calculate(data, holeIndices, dim);
+    }
+    
+    /// <summary>
+    /// Triangulates the given polygon
+    /// </summary>
+    /// <param name="data">is a flat array of vertex coordinates like [x0,y0, x1,y1, x2,y2, ...].</param>
+    /// <param name="holeIndices">is an array of hole indices if any (e.g. [5, 8] for a 12-vertex input would mean one hole with vertices 5-7 and another with 8-11).</param>
+    /// <param name="dim">is the number of coordinates per vertex in the input array</param>
+    /// <returns>List containing groups of three vertex indices in the resulting array forms a triangle.</returns>
+    public static List<int> Calculate(float[]? data, int[]? holeIndices = null, int dim = 2)
+    {
+        return EarCut<float>.Calculate(data, holeIndices, dim);
+    }
+}
+
+public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxValue<TVertex>
+{
+    /// <summary>
+    /// Triangulates the given polygon
+    /// </summary>
+    /// <param name="data">is a flat array of vertex coordinates like [x0,y0, x1,y1, x2,y2, ...].</param>
+    /// <param name="holeIndices">is an array of hole indices if any (e.g. [5, 8] for a 12-vertex input would mean one hole with vertices 5-7 and another with 8-11).</param>
+    /// <param name="dim">is the number of coordinates per vertex in the input array</param>
+    /// <returns>List containing groups of three vertex indices in the resulting array forms a triangle.</returns>
+    public static List<int> Calculate(TVertex[]? data, int[]? holeIndices = null, int dim = 2) 
     {
         if (data == null)
         {
@@ -22,9 +58,9 @@ public static class EarCut
         if (outerNode == null || outerNode.Next == outerNode.Prev)
             return triangles;
 
-        double minX = 0;
-        double minY = 0;
-        var invSize = double.MinValue;
+        var minX = TVertex.Zero;
+        var minY = TVertex.Zero;
+        var invSize = TVertex.MinValue;
 
         if (hasHoles)
             outerNode = EliminateHoles(data, holeIndices, outerNode, dim);
@@ -32,15 +68,15 @@ public static class EarCut
         // if the shape is not too simple, we'll use z-order curve hash later;
         // calculate polygon bbox
         if (data.Length > 80 * dim) {
-            double maxX;
-            double maxY;
+            TVertex maxX;
+            TVertex maxY;
             
             minX = maxX = data[0];
             minY = maxY = data[1];
 
             for (int i = dim; i < outerLen; i += dim) {
-                double x = data[i];
-                double y = data[i + 1];
+                var x = data[i];
+                var y = data[i + 1];
                 if (x < minX)
                     minX = x;
                 if (y < minY)
@@ -53,8 +89,8 @@ public static class EarCut
 
             // minX, minY and size are later used to transform coords into
             // integers for z-order calculation
-            invSize = Math.Max(maxX - minX, maxY - minY);
-            invSize = invSize != 0.0 ? 1.0 / invSize : 0.0;
+            invSize = TVertex.Max(maxX - minX, maxY - minY);
+            invSize = invSize != TVertex.Zero ? TVertex.One / invSize : TVertex.Zero;
         }
 
         EarCutLinked(outerNode, triangles, dim, minX, minY, invSize, int.MinValue);
@@ -62,12 +98,12 @@ public static class EarCut
         return triangles;
     }
     
-    private static void EarCutLinked(Node? ear, List<int> triangles, int dim, double minX, double minY, double invSize, int pass) {
+    private static void EarCutLinked(Node<TVertex>? ear, List<int> triangles, int dim, TVertex minX, TVertex minY, TVertex invSize, int pass) {
         if (ear == null)
             return;
 
         // interlink polygon nodes in z-order
-        if (pass == int.MinValue && invSize.NotEqual(double.MinValue))
+        if (pass == int.MinValue && invSize.NotEqual(TVertex.MinValue))
             IndexCurve(ear, minX, minY, invSize);
 
         var stop = ear;
@@ -77,7 +113,7 @@ public static class EarCut
             var prev = ear.Prev;
             var next = ear.Next;
 
-            if (invSize.NotEqual(double.MinValue) ? IsEarHashed(ear, minX, minY, invSize) : IsEar(ear)) {
+            if (invSize.NotEqual(TVertex.MinValue) ? IsEarHashed(ear, minX, minY, invSize) : IsEar(ear)) {
                 // cut off the triangle
                 triangles.Add(prev!.I / dim);
                 triangles.Add(ear.I / dim);
@@ -118,7 +154,7 @@ public static class EarCut
         }
     }
     
-    private static void SplitEarCut(Node? start, List<int> triangles, int dim, double minX, double minY, double size) {
+    private static void SplitEarCut(Node<TVertex>? start, List<int> triangles, int dim, TVertex minX, TVertex minY, TVertex size) {
         // look for a valid diagonal that divides the polygon into two
         var a = start;
         do {
@@ -143,20 +179,20 @@ public static class EarCut
         } while (a != start);
     }
     
-    private static bool IsValidDiagonal(Node a, Node b) {
+    private static bool IsValidDiagonal(Node<TVertex> a, Node<TVertex> b) {
         //return a.next.i != b.i && a.prev.i != b.i && !intersectsPolygon(a, b) && locallyInside(a, b) && locallyInside(b, a) && middleInside(a, b);
 
         return a.Next!.I != b.I && a.Prev!.I != b.I && !IntersectsPolygon(a, b) && // doesn't intersect other edges
                (LocallyInside(a, b) && LocallyInside(b, a) && MiddleInside(a, b) && // locally visible
-                (Area(a.Prev, a, b.Prev!) != 0 || Area(a, b.Prev!, b) != 0) || // does not create opposite-facing sectors
-                Equals(a, b) && Area(a.Prev, a, a.Next) > 0 && Area(b.Prev!, b, b.Next!) > 0); // special zero-length case
+                (Area(a.Prev, a, b.Prev!) != TVertex.Zero || Area(a, b.Prev!, b) != TVertex.Zero) || // does not create opposite-facing sectors
+                Equals(a, b) && Area(a.Prev, a, a.Next) > TVertex.Zero && Area(b.Prev!, b, b.Next!) > TVertex.Zero); // special zero-length case
     }
     
-    private static bool MiddleInside(Node a, Node b) {
+    private static bool MiddleInside(Node<TVertex> a, Node<TVertex> b) {
         var p = a;
         var inside = false;
-        var px = (a.X + b.X) / 2;
-        var py = (a.Y + b.Y) / 2;
+        var px = (a.X + b.X) / (TVertex.One + TVertex.One);
+        var py = (a.Y + b.Y) / (TVertex.One + TVertex.One);
         do {
             if (((p.Y > py) != (p.Next!.Y > py)) && (px < (p.Next.X - p.X) * (py - p.Y) / (p.Next.Y - p.Y) + p.X))
                 inside = !inside;
@@ -166,8 +202,8 @@ public static class EarCut
         return inside;
     }
     
-    private static bool IntersectsPolygon(Node a, Node b) {
-        Node p = a;
+    private static bool IntersectsPolygon(Node<TVertex> a, Node<TVertex> b) {
+        var p = a;
         do {
             if (p.I != a.I && p.Next!.I != a.I && p.I != b.I && p.Next.I != b.I && Intersects(p, p.Next, a, b))
                 return true;
@@ -177,42 +213,42 @@ public static class EarCut
         return false;
     }
     
-    private static bool Intersects(Node p1, Node q1, Node p2, Node q2) {
+    private static bool Intersects(Node<TVertex> p1, Node<TVertex> q1, Node<TVertex> p2, Node<TVertex> q2) {
         if ((Equals(p1, p2) && Equals(q1, q2)) || (Equals(p1, q2) && Equals(p2, q1)))
             return true;
-        double o1 = Sign(Area(p1, q1, p2));
-        double o2 = Sign(Area(p1, q1, q2));
-        double o3 = Sign(Area(p2, q2, p1));
-        double o4 = Sign(Area(p2, q2, q1));
+        var o1 = Sign(Area(p1, q1, p2));
+        var o2 = Sign(Area(p1, q1, q2));
+        var o3 = Sign(Area(p2, q2, p1));
+        var o4 = Sign(Area(p2, q2, q1));
 
         if (o1.NotEqual(o2) && o3.NotEqual(o4))
             return true; // general case
 
-        if (o1 == 0 && OnSegment(p1, p2, q1))
+        if (o1 == TVertex.Zero && OnSegment(p1, p2, q1))
             return true; // p1, q1 and p2 are collinear and p2 lies on p1q1
-        if (o2 == 0 && OnSegment(p1, q2, q1))
+        if (o2 == TVertex.Zero && OnSegment(p1, q2, q1))
             return true; // p1, q1 and q2 are collinear and q2 lies on p1q1
-        if (o3 == 0 && OnSegment(p2, p1, q2))
+        if (o3 == TVertex.Zero && OnSegment(p2, p1, q2))
             return true; // p2, q2 and p1 are collinear and p1 lies on p2q2
-        if (o4 == 0 && OnSegment(p2, q1, q2))
+        if (o4 == TVertex.Zero && OnSegment(p2, q1, q2))
             return true; // p2, q2 and q1 are collinear and q1 lies on p2q2
 
         return false;
     }
     
     // for collinear points p, q, r, check if point q lies on segment pr
-    private static bool OnSegment(Node p, Node q, Node r) {
-        return q.X <= Math.Max(p.X, r.X) && q.X >= Math.Min(p.X, r.X) && q.Y <= Math.Max(p.Y, r.Y) && q.Y >= Math.Min(p.Y, r.Y);
+    private static bool OnSegment(Node<TVertex> p, Node<TVertex> q, Node<TVertex> r) {
+        return q.X <= TVertex.Max(p.X, r.X) && q.X >= TVertex.Min(p.X, r.X) && q.Y <= TVertex.Max(p.Y, r.Y) && q.Y >= TVertex.Min(p.Y, r.Y);
     }
     
-    private static double Sign(double num) {
-        return num > 0 ? 1 : num < 0 ? -1 : 0;
+    private static TVertex Sign(TVertex num) {
+        return num > TVertex.Zero ? TVertex.One : num < TVertex.Zero ? -TVertex.One : TVertex.Zero;
     }
     
-    private static Node CureLocalIntersections(Node? start, List<int> triangles, int dim) {
+    private static Node<TVertex> CureLocalIntersections(Node<TVertex>? start, List<int> triangles, int dim) {
         var p = start;
         do {
-            Node a = p!.Prev!, b = p.Next!.Next!;
+            Node<TVertex> a = p!.Prev!, b = p.Next!.Next!;
 
             if (!Equals(a, b) && Intersects(a, p, p.Next, b) && LocallyInside(a, b) && LocallyInside(b, a)) {
 
@@ -232,17 +268,17 @@ public static class EarCut
         return FilterPoints(p, null)!;
     }
     
-    private static bool IsEar(Node ear) {
-        Node a = ear.Prev!, b = ear, c = ear.Next!;
+    private static bool IsEar(Node<TVertex> ear) {
+        Node<TVertex> a = ear.Prev!, b = ear, c = ear.Next!;
 
-        if (Area(a, b, c) >= 0)
+        if (Area(a, b, c) >= TVertex.Zero)
             return false; // reflex, can't be an ear
 
         // now make sure we don't have other points inside the potential ear
         var p = ear.Next!.Next!;
 
         while (p != ear.Prev) {
-            if (PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, p.X, p.Y) && Area(p.Prev!, p, p.Next!) >= 0)
+            if (PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, p.X, p.Y) && Area(p.Prev!, p, p.Next!) >= TVertex.Zero)
                 return false;
             p = p.Next!;
         }
@@ -250,16 +286,16 @@ public static class EarCut
         return true;
     }
     
-    private static bool IsEarHashed(Node ear, double minX, double minY, double invSize) {
+    private static bool IsEarHashed(Node<TVertex> ear, TVertex minX, TVertex minY, TVertex invSize) {
         var a = ear.Prev!;
         var b = ear;
         var c = ear.Next!;
 
-        if (Area(a, b, c) >= 0)
+        if (Area(a, b, c) >= TVertex.Zero)
             return false; // reflex, can't be an ear
 
         // triangle bbox; min & max are calculated like this for speed
-        double minTx = a.X < b.X ? (a.X < c.X ? a.X : c.X) : (b.X < c.X ? b.X : c.X), minTy = a.Y < b.Y ? (a.Y < c.Y ? a.Y : c.Y) : (b.Y < c.Y ? b.Y : c.Y),
+        TVertex minTx = a.X < b.X ? (a.X < c.X ? a.X : c.X) : (b.X < c.X ? b.X : c.X), minTy = a.Y < b.Y ? (a.Y < c.Y ? a.Y : c.Y) : (b.Y < c.Y ? b.Y : c.Y),
                 maxTx = a.X > b.X ? (a.X > c.X ? a.X : c.X) : (b.X > c.X ? b.X : c.X), maxTy = a.Y > b.Y ? (a.Y > c.Y ? a.Y : c.Y) : (b.Y > c.Y ? b.Y : c.Y);
 
         // z-order range for the current triangle bbox;
@@ -271,25 +307,25 @@ public static class EarCut
         var n = ear.NextZ;
 
         while (p != null && p.Z >= minZ && n != null && n.Z <= maxZ) {
-            if (p != ear.Prev && p != ear.Next && PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, p.X, p.Y) && Area(p.Prev!, p, p.Next!) >= 0)
+            if (p != ear.Prev && p != ear.Next && PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, p.X, p.Y) && Area(p.Prev!, p, p.Next!) >= TVertex.Zero)
                 return false;
             p = p.PrevZ;
 
-            if (n != ear.Prev && n != ear.Next && PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, n.X, n.Y) && Area(n.Prev!, n, n.Next!) >= 0)
+            if (n != ear.Prev && n != ear.Next && PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, n.X, n.Y) && Area(n.Prev!, n, n.Next!) >= TVertex.Zero)
                 return false;
             n = n.NextZ;
         }
 
         // look for remaining points in decreasing z-order
         while (p != null && p.Z >= minZ) {
-            if (p != ear.Prev && p != ear.Next && PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, p.X, p.Y) && Area(p.Prev!, p, p.Next!) >= 0)
+            if (p != ear.Prev && p != ear.Next && PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, p.X, p.Y) && Area(p.Prev!, p, p.Next!) >= TVertex.Zero)
                 return false;
             p = p.PrevZ;
         }
 
         // look for remaining points in increasing z-order
         while (n != null && n.Z <= maxZ) {
-            if (n != ear.Prev && n != ear.Next && PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, n.X, n.Y) && Area(n.Prev!, n, n.Next!) >= 0)
+            if (n != ear.Prev && n != ear.Next && PointInTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, n.X, n.Y) && Area(n.Prev!, n, n.Next!) >= TVertex.Zero)
                 return false;
             n = n.NextZ;
         }
@@ -298,11 +334,17 @@ public static class EarCut
     }
     
     // z-order of a point given coords and inverse of the longer side of data bbox
-    private static double ZOrder(double x, double y, double minX, double minY, double invSize) {
+    private static TVertex ZOrder(TVertex x, TVertex y, TVertex minX, TVertex minY, TVertex invSize) {
         // coords are transformed into non-negative 15-bit integer range
-        int lx = (int)(32767 * (x - minX) * invSize);
-        int ly = (int)(32767 * (y - minY) * invSize);
+        // Convert TVertex to double for computation
+        double dx = double.CreateChecked(x - minX) * 32767 * double.CreateChecked(invSize);
+        double dy = double.CreateChecked(y - minY) * 32767 * double.CreateChecked(invSize);
 
+        // Convert to int for bitwise operations
+        int lx = (int)dx;
+        int ly = (int)dy;
+
+        // Apply bitwise interleaving
         lx = (lx | (lx << 8)) & 0x00FF00FF;
         lx = (lx | (lx << 4)) & 0x0F0F0F0F;
         lx = (lx | (lx << 2)) & 0x33333333;
@@ -313,13 +355,17 @@ public static class EarCut
         ly = (ly | (ly << 2)) & 0x33333333;
         ly = (ly | (ly << 1)) & 0x55555555;
 
-        return lx | (ly << 1);
+        // Compute final Z-order value
+        int z = lx | (ly << 1);
+
+        // Convert result back to TVertex
+        return TVertex.CreateChecked(z);
     }
     
-    private static void IndexCurve(Node start, double minX, double minY, double invSize) {
+    private static void IndexCurve(Node<TVertex> start, TVertex minX, TVertex minY, TVertex invSize) {
         var p = start;
         do {
-            if (p!.Z.Equal(double.MinValue))
+            if (p!.Z.Equal(TVertex.MinValue))
                 p.Z = ZOrder(p.X, p.Y, minX, minY, invSize);
             p.PrevZ = p.Prev;
             p.NextZ = p.Next;
@@ -332,14 +378,14 @@ public static class EarCut
         SortLinked(p);
     }
     
-    private static void SortLinked(Node? list) {
+    private static void SortLinked(Node<TVertex>? list) {
         var inSize = 1;
 
         int numMerges;
         do {
             var p = list;
             list = null;
-            Node? tail = null;
+            Node<TVertex>? tail = null;
             numMerges = 0;
 
             while (p != null) {
@@ -356,7 +402,7 @@ public static class EarCut
                 var qSize = inSize;
 
                 while (pSize > 0 || (qSize > 0 && q != null)) {
-                    Node e;
+                    Node<TVertex> e;
                     if (pSize == 0) {
                         e = q!;
                         q = q!.NextZ;
@@ -393,9 +439,9 @@ public static class EarCut
         } while (numMerges > 1);
     }
     
-    private static Node EliminateHoles(double[] data, int[]? holeIndices, Node outerNode, int dim)
+    private static Node<TVertex> EliminateHoles(TVertex[] data, int[]? holeIndices, Node<TVertex> outerNode, int dim)
     {
-        var queue = new List<Node>();
+        var queue = new List<Node<TVertex>>();
 
         var len = holeIndices?.Length ?? 0;
         for (var i = 0; i < len; i++) {
@@ -409,12 +455,12 @@ public static class EarCut
 
         queue.Sort((o1, o2) =>
         {
-            if (o1.X - o2.X > 0)
+            if (o1.X - o2.X > TVertex.Zero)
             {
                 return 1;
             }
 
-            if (o1.X - o2.X < 0)
+            if (o1.X - o2.X < TVertex.Zero)
             {
                 return -2;
             }
@@ -431,7 +477,7 @@ public static class EarCut
         return outerNode;
     }
     
-    private static Node? FilterPoints(Node? start, Node? end) {
+    private static Node<TVertex>? FilterPoints(Node<TVertex>? start, Node<TVertex>? end) {
         if (start == null)
             return start;
         end ??= start;
@@ -442,7 +488,7 @@ public static class EarCut
         do {
             again = false;
 
-            if (!p!.Steiner && Equals(p, p.Next) || Area(p.Prev!, p, p.Next!) == 0) {
+            if (!p!.Steiner && Equals(p, p.Next) || Area(p.Prev!, p, p.Next!) == TVertex.Zero) {
                 RemoveNode(p);
                 p = end = p.Prev;
                 if (p == p!.Next)
@@ -456,7 +502,7 @@ public static class EarCut
         return end;
     }
     
-    private static bool Equals(Node? p1, Node? p2) {
+    private static bool Equals(Node<TVertex>? p1, Node<TVertex>? p2) {
         if (p1 == null || p2 == null)
         {
             return false;
@@ -465,14 +511,14 @@ public static class EarCut
         return p1.X.Equal(p2.X) && p1.Y.Equal(p2.Y);
     }
     
-    private static double Area(Node p, Node q, Node r) {
+    private static TVertex Area(Node<TVertex> p, Node<TVertex> q, Node<TVertex> r) {
         return (q.Y - p.Y) * (r.X - q.X) - (q.X - p.X) * (r.Y - q.Y);
     }
     
-    private static void EliminateHole(Node hole, Node? outerNode) {
+    private static void EliminateHole(Node<TVertex> hole, Node<TVertex>? outerNode) {
         outerNode = FindHoleBridge(hole, outerNode);
         if (outerNode != null) {
-            Node b = SplitPolygon(outerNode, hole);
+            var b = SplitPolygon(outerNode, hole);
             
             // filter collinear points around the cuts
             FilterPoints(outerNode, outerNode.Next);
@@ -480,9 +526,9 @@ public static class EarCut
         }
     }
     
-    private static Node SplitPolygon(Node a, Node b) {
-        var a2 = new Node(a.I, a.X, a.Y);
-        var b2 = new Node(b.I, b.X, b.Y);
+    private static Node<TVertex> SplitPolygon(Node<TVertex> a, Node<TVertex> b) {
+        var a2 = new Node<TVertex>(a.I, a.X, a.Y);
+        var b2 = new Node<TVertex>(b.I, b.X, b.Y);
         var an = a.Next;
         var bp = b.Prev;
 
@@ -503,19 +549,19 @@ public static class EarCut
     
     // David Eberly's algorithm for finding a bridge between hole and outer
     // polygon
-    private static Node? FindHoleBridge(Node hole, Node? outerNode) {
+    private static Node<TVertex>? FindHoleBridge(Node<TVertex> hole, Node<TVertex>? outerNode) {
         var p = outerNode;
         var hx = hole.X;
         var hy = hole.Y;
-        var qx = -Double.MaxValue;
-        Node? m = null;
+        var qx = -TVertex.MaxValue;
+        Node<TVertex>? m = null;
 
         // find a segment intersected by a ray from the hole's leftmost point to
         // the left;
         // segment's endpoint with lesser x will be potential connection point
         do {
             if (hy <= p!.Y && hy >= p.Next!.Y) {
-                double x = p.X + (hy - p.Y) * (p.Next.X - p.X) / (p.Next.Y - p.Y);
+                TVertex x = p.X + (hy - p.Y) * (p.Next.X - p.X) / (p.Next.Y - p.Y);
                 if (x <= hx && x > qx) {
                     qx = x;
                     if (x.Equal(hx)) {
@@ -545,14 +591,14 @@ public static class EarCut
         var stop = m;
         var mx = m.X;
         var my = m.Y;
-        var tanMin = double.MaxValue;
+        TVertex tanMin = TVertex.MaxValue;
 
         p = m;
 
         do {
             if (hx >= p!.X && p.X >= mx && PointInTriangle(hy < my ? hx : qx, hy, mx, my, hy < my ? qx : hx, hy, p.X, p.Y))
             {
-                var tan = Math.Abs(hy - p.Y) / (hx - p.X);
+                var tan = TVertex.Abs(hy - p.Y) / (hx - p.X);
 
                 if (LocallyInside(p, hole) && (tan < tanMin || (tan.Equal(tanMin) && (p.X > m.X || (p.X.Equal(m.X) && SectorContainsSector(m, p)))))) {
                     m = p;
@@ -566,22 +612,22 @@ public static class EarCut
         return m;
     }
     
-    private static bool LocallyInside(Node a, Node b) {
-        return Area(a.Prev!, a, a.Next!) < 0 ? Area(a, b, a.Next!) >= 0 && Area(a, a.Prev!, b) >= 0 : Area(a, b, a.Prev!) < 0 || Area(a, a.Next!, b) < 0;
+    private static bool LocallyInside(Node<TVertex> a, Node<TVertex> b) {
+        return Area(a.Prev!, a, a.Next!) < TVertex.Zero ? Area(a, b, a.Next!) >= TVertex.Zero && Area(a, a.Prev!, b) >= TVertex.Zero : Area(a, b, a.Prev!) < TVertex.Zero || Area(a, a.Next!, b) < TVertex.Zero;
     }
     
     // whether sector in vertex m contains sector in vertex p in the same
     // coordinates
-    private static bool SectorContainsSector(Node m, Node p) {
-        return Area(m.Prev!, m, p.Prev!) < 0 && Area(p.Next!, m, m.Next!) < 0;
+    private static bool SectorContainsSector(Node<TVertex> m, Node<TVertex> p) {
+        return Area(m.Prev!, m, p.Prev!) < TVertex.Zero && Area(p.Next!, m, m.Next!) < TVertex.Zero;
     }
     
-    private static bool PointInTriangle(double ax, double ay, double bx, double by, double cx, double cy, double px, double py) {
-        return (cx - px) * (ay - py) - (ax - px) * (cy - py) >= 0 && (ax - px) * (by - py) - (bx - px) * (ay - py) >= 0
-                                                                  && (bx - px) * (cy - py) - (cx - px) * (by - py) >= 0;
+    private static bool PointInTriangle(TVertex ax, TVertex ay, TVertex bx, TVertex by, TVertex cx, TVertex cy, TVertex px, TVertex py) {
+        return (cx - px) * (ay - py) - (ax - px) * (cy - py) >= TVertex.Zero && (ax - px) * (by - py) - (bx - px) * (ay - py) >= TVertex.Zero
+                                                                        && (bx - px) * (cy - py) - (cx - px) * (by - py) >= TVertex.Zero;
     }
     
-    private static Node GetLeftmost(Node start) {
+    private static Node<TVertex> GetLeftmost(Node<TVertex> start) {
         var p = start;
         var leftmost = start;
         do {
@@ -592,9 +638,9 @@ public static class EarCut
         return leftmost;
     }
     
-    private static Node? LinkedList(double[] data, int start, int end, int dim, bool clockwise) {
-        Node? last = null;
-        if (clockwise == (SignedArea(data, start, end, dim) > 0)) {
+    private static Node<TVertex>? LinkedList(TVertex[] data, int start, int end, int dim, bool clockwise) {
+        Node<TVertex>? last = null;
+        if (clockwise == (SignedArea(data, start, end, dim) > TVertex.Zero)) {
             for (int i = start; i < end; i += dim) {
                 last = InsertNode(i, data[i], data[i + 1], last);
             }
@@ -611,7 +657,7 @@ public static class EarCut
         return last;
     }
     
-    private static void RemoveNode(Node p) {
+    private static void RemoveNode(Node<TVertex> p) {
         p.Next!.Prev = p.Prev;
         p.Prev!.Next = p.Next;
 
@@ -623,8 +669,8 @@ public static class EarCut
         }
     }
     
-    private static Node InsertNode(int i, double x, double y, Node? last) {
-        var p = new Node(i, x, y);
+    private static Node<TVertex> InsertNode(int i, TVertex x, TVertex y, Node<TVertex>? last) {
+        var p = new Node<TVertex>(i, x, y);
 
         if (last == null) {
             p.Prev = p;
@@ -638,8 +684,8 @@ public static class EarCut
         return p;
     }
     
-    private static double SignedArea(double[] data, int start, int end, int dim) {
-        double sum = 0;
+    private static TVertex SignedArea(TVertex[] data, int start, int end, int dim) {
+        var sum = TVertex.Zero;
         var j = end - dim;
         for (var i = start; i < end; i += dim) {
             sum += (data[j] - data[i]) * (data[i + 1] + data[j + 1]);
