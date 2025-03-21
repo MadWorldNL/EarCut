@@ -14,9 +14,9 @@ public static class EarCut
     /// <param name="holeIndices">is an array of hole indices if any (e.g. [5, 8] for a 12-vertex input would mean one hole with vertices 5-7 and another with 8-11).</param>
     /// <param name="dim">is the number of coordinates per vertex in the input array</param>
     /// <returns>List containing groups of three vertex indices in the resulting array forms a triangle.</returns>
-    public static List<int> Calculate(double[]? data, int[]? holeIndices = null, int dim = 2)
+    public static List<int> Tessellate(double[]? data, int[]? holeIndices = null, int dim = 2)
     {
-        return EarCut<double>.Calculate(data, holeIndices, dim);
+        return EarCut<double>.Tessellate(data, holeIndices, dim);
     }
     
     /// <summary>
@@ -26,9 +26,9 @@ public static class EarCut
     /// <param name="holeIndices">is an array of hole indices if any (e.g. [5, 8] for a 12-vertex input would mean one hole with vertices 5-7 and another with 8-11).</param>
     /// <param name="dim">is the number of coordinates per vertex in the input array</param>
     /// <returns>List containing groups of three vertex indices in the resulting array forms a triangle.</returns>
-    public static List<int> Calculate(float[]? data, int[]? holeIndices = null, int dim = 2)
+    public static List<int> Tessellate(float[]? data, int[]? holeIndices = null, int dim = 2)
     {
-        return EarCut<float>.Calculate(data, holeIndices, dim);
+        return EarCut<float>.Tessellate(data, holeIndices, dim);
     }
 }
 
@@ -41,7 +41,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
     /// <param name="holeIndices">is an array of hole indices if any (e.g. [5, 8] for a 12-vertex input would mean one hole with vertices 5-7 and another with 8-11).</param>
     /// <param name="dim">is the number of coordinates per vertex in the input array</param>
     /// <returns>List containing groups of three vertex indices in the resulting array forms a triangle.</returns>
-    public static List<int> Calculate(TVertex[]? data, int[]? holeIndices = null, int dim = 2) 
+    public static List<int> Tessellate(TVertex[]? data, int[]? holeIndices = null, int dim = 2) 
     {
         if (data == null)
         {
