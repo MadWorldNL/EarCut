@@ -12,7 +12,7 @@
 
     <PropertyGroup>
         <PackageId>MadWorldNL.EarCut</PackageId>
-        <Version>0.4.0</Version>
+        <Version>1.0.0</Version>
         <Authors>MadWorldNL</Authors>
         <Owners>MadWorldNL</Owners>
         <Description>
@@ -24,6 +24,7 @@
         <RepositoryUrl>https://github.com/MadWorldNL/EarCut</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageReleaseNotes>
+            v1.0.0: Official release
             v0.4.0: Add SourceLink
             v0.3.0: Refactor Calculate Methode name into Tessellate Methode
             v0.2.0: Add support for other number types
