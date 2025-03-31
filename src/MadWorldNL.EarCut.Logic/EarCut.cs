@@ -5,6 +5,9 @@ using MadWorldNL.EarCut.Logic.Extensions;
 
 namespace MadWorldNL.EarCut.Logic;
 
+/// <summary>
+/// Provides functionality for triangulating polygons using the Ear Clipping algorithm.
+/// </summary>
 public static class EarCut
 {
     /// <summary>
@@ -20,6 +23,10 @@ public static class EarCut
     }
 }
 
+/// <summary>
+/// Provides functionality for triangulating polygons using the Ear Clipping algorithm.
+/// </summary>
+/// <typeparam name="TVertex">The numeric type used for vertex coordinates, which must implement <see cref="INumber{T}"/> and <see cref="IMinMaxValue{T}"/>.</typeparam>
 public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxValue<TVertex>
 {
     /// <summary>
@@ -168,8 +175,6 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
     }
     
     private static bool IsValidDiagonal(Node<TVertex> a, Node<TVertex> b) {
-        //return a.next.i != b.i && a.prev.i != b.i && !intersectsPolygon(a, b) && locallyInside(a, b) && locallyInside(b, a) && middleInside(a, b);
-
         return a.Next!.I != b.I && a.Prev!.I != b.I && !IntersectsPolygon(a, b) && // doesn't intersect other edges
                (LocallyInside(a, b) && LocallyInside(b, a) && MiddleInside(a, b) && // locally visible
                 (Area(a.Prev, a, b.Prev!) != TVertex.Zero || Area(a, b.Prev!, b) != TVertex.Zero) || // does not create opposite-facing sectors
