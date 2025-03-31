@@ -6,13 +6,14 @@
         <Nullable>enable</Nullable>
         <RootNamespace>MadWorldNL.EarCut.Logic</RootNamespace>
         <AssemblyName>$(RootNamespace)</AssemblyName>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
     </PropertyGroup>
 
     <PropertyGroup>
         <PackageId>MadWorldNL.EarCut</PackageId>
-        <Version>1.0.1</Version>
+        <Version>1.0.2</Version>
         <Authors>MadWorldNL</Authors>
         <Owners>MadWorldNL</Owners>
         <Description>
@@ -24,6 +25,7 @@
         <RepositoryUrl>https://github.com/MadWorldNL/EarCut</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageReleaseNotes>
+            v1.0.2: Resolved an issue where XML documentation comments were not included in the NuGet package.
             v1.0.1: Cleaner way to call the Earcut method
             v1.0.0: Official release
             v0.4.0: Add SourceLink
@@ -32,7 +34,7 @@
             v0.1.0: Add earcut algorithm
         </PackageReleaseNotes>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <PackageTags>MadWorldNL, Libraries, ASP.NET Core, EarCut</PackageTags>
+        <PackageTags>MadWorldNL EarCut Vertex Index</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>
