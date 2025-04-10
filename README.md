@@ -36,7 +36,7 @@ Signature: `Calculate(double[] data, int[] holeIndices, int dim)`.
 * `data` is a flat array of vertice coordinates like `[x0,y0, x1,y1, x2,y2, ...]`.
 * `holeIndices` is an array of hole _indices_ if any
   (e.g. `[5, 8]` for a 12-vertice input would mean one hole with vertices 5&ndash;7 and another with 8&ndash;11).
-* `dim` is the number of coordinates per vertice in the input array (`2` by default).
+* `dim` is the number of coordinates per vertice in the input array (`2` by default). Only two are used for triangulation (`x` and `y`), and the rest are ignored.
 
 Each group of three vertice indices in the resulting array forms a triangle.
 
@@ -49,5 +49,7 @@ List<int> triangles = Earcut.Tessellate(new double[] { 0, 0, 100, 0, 100, 100, 0
 List<int> triangles = Earcut.Tessellate(new double[] { 10, 0, 1, 0, 50, 2, 60, 60, 3, 70, 10, 4 }, null, 3);
 // [1,0,3, 3,2,1]
 ```
+
+Note that Earcut is a **2D** triangulation algorithm, and handles 3D data as if it was projected onto the XY plane (with Z component ignored).
 
 If you pass a single vertice as a hole, Earcut treats it as a Steiner point.

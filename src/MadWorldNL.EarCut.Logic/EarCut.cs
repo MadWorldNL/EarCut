@@ -15,7 +15,7 @@ public static class EarCut
     /// </summary>
     /// <param name="data">is a flat array of vertex coordinates like [x0,y0, x1,y1, x2,y2, ...].</param>
     /// <param name="holeIndices">is an array of hole indices if any (e.g. [5, 8] for a 12-vertex input would mean one hole with vertices 5-7 and another with 8-11).</param>
-    /// <param name="dim">is the number of coordinates per vertex in the input array</param>
+    /// <param name="dim">is the number of coordinates per vertex in the input array. Only two are used for triangulation (`x` and `y`), and the rest are ignored.</param>
     /// <returns>List containing groups of three vertex indices in the resulting array forms a triangle.</returns>
     public static List<int> Tessellate<TVertex>(TVertex[]? data, int[]? holeIndices = null, int dim = 2) where TVertex : INumber<TVertex>, IMinMaxValue<TVertex>
     {
@@ -34,7 +34,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
     /// </summary>
     /// <param name="data">is a flat array of vertex coordinates like [x0,y0, x1,y1, x2,y2, ...].</param>
     /// <param name="holeIndices">is an array of hole indices if any (e.g. [5, 8] for a 12-vertex input would mean one hole with vertices 5-7 and another with 8-11).</param>
-    /// <param name="dim">is the number of coordinates per vertex in the input array</param>
+    /// <param name="dim">is the number of coordinates per vertex in the input array. Only two are used for triangulation (`x` and `y`), and the rest are ignored.</param>
     /// <returns>List containing groups of three vertex indices in the resulting array forms a triangle.</returns>
     public static List<int> Tessellate(TVertex[]? data, int[]? holeIndices = null, int dim = 2) 
     {
