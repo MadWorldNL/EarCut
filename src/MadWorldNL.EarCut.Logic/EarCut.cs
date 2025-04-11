@@ -36,6 +36,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
     /// <param name="holeIndices">is an array of hole indices if any (e.g. [5, 8] for a 12-vertex input would mean one hole with vertices 5-7 and another with 8-11).</param>
     /// <param name="dim">is the number of coordinates per vertex in the input array. Only two are used for triangulation (`x` and `y`), and the rest are ignored.</param>
     /// <returns>List containing groups of three vertex indices in the resulting array forms a triangle.</returns>
+    /// TODO: Check Tessellate
     public static List<int> Tessellate(TVertex[]? data, int[]? holeIndices = null, int dim = 2) 
     {
         if (data == null)
@@ -93,6 +94,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return triangles;
     }
     
+    /// TODO: Check EarCutLinked
     private static void EarCutLinked(Node<TVertex>? ear, List<int> triangles, int dim, TVertex minX, TVertex minY, TVertex invSize, int pass) {
         if (ear == null)
             return;
@@ -149,6 +151,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         }
     }
     
+    /// TODO: Check SplitEarCut
     private static void SplitEarCut(Node<TVertex>? start, List<int> triangles, int dim, TVertex minX, TVertex minY, TVertex size) {
         // look for a valid diagonal that divides the polygon into two
         var a = start;
@@ -174,6 +177,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         } while (a != start);
     }
     
+    /// TODO: Check IsValidDiagonal
     private static bool IsValidDiagonal(Node<TVertex> a, Node<TVertex> b) {
         return a.Next!.I != b.I && a.Prev!.I != b.I && !IntersectsPolygon(a, b) && // doesn't intersect other edges
                (LocallyInside(a, b) && LocallyInside(b, a) && MiddleInside(a, b) && // locally visible
@@ -181,6 +185,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
                 Equals(a, b) && Area(a.Prev, a, a.Next) > TVertex.Zero && Area(b.Prev!, b, b.Next!) > TVertex.Zero); // special zero-length case
     }
     
+    /// TODO: Check MiddleInside
     private static bool MiddleInside(Node<TVertex> a, Node<TVertex> b) {
         var p = a;
         var inside = false;
@@ -195,6 +200,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return inside;
     }
     
+    /// TODO: Check IntersectsPolygon
     private static bool IntersectsPolygon(Node<TVertex> a, Node<TVertex> b) {
         var p = a;
         do {
@@ -206,6 +212,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return false;
     }
     
+    /// TODO: Check Intersects
     private static bool Intersects(Node<TVertex> p1, Node<TVertex> q1, Node<TVertex> p2, Node<TVertex> q2) {
         if ((Equals(p1, p2) && Equals(q1, q2)) || (Equals(p1, q2) && Equals(p2, q1)))
             return true;
@@ -229,15 +236,18 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return false;
     }
     
+    /// TODO: Check OnSegment
     // for collinear points p, q, r, check if point q lies on segment pr
     private static bool OnSegment(Node<TVertex> p, Node<TVertex> q, Node<TVertex> r) {
         return q.X <= TVertex.Max(p.X, r.X) && q.X >= TVertex.Min(p.X, r.X) && q.Y <= TVertex.Max(p.Y, r.Y) && q.Y >= TVertex.Min(p.Y, r.Y);
     }
     
+    /// TODO: Check Sign
     private static TVertex Sign(TVertex num) {
         return num > TVertex.Zero ? TVertex.One : num < TVertex.Zero ? -TVertex.One : TVertex.Zero;
     }
     
+    /// TODO: Check CureLocalIntersections
     private static Node<TVertex> CureLocalIntersections(Node<TVertex>? start, List<int> triangles, int dim) {
         var p = start;
         do {
@@ -261,6 +271,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return FilterPoints(p, null)!;
     }
     
+    /// TODO: Check IsEar
     private static bool IsEar(Node<TVertex> ear) {
         Node<TVertex> a = ear.Prev!, b = ear, c = ear.Next!;
 
@@ -279,6 +290,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return true;
     }
     
+    /// TODO: Check IsEarHashed
     private static bool IsEarHashed(Node<TVertex> ear, TVertex minX, TVertex minY, TVertex invSize) {
         var a = ear.Prev!;
         var b = ear;
@@ -326,6 +338,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return true;
     }
     
+    /// TODO: Check ZOrder
     // z-order of a point given coords and inverse of the longer side of data bbox
     private static TVertex ZOrder(TVertex x, TVertex y, TVertex minX, TVertex minY, TVertex invSize) {
         // coords are transformed into non-negative 15-bit integer range
@@ -355,6 +368,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return TVertex.CreateChecked(z);
     }
     
+    /// TODO: Check IndexCurve
     private static void IndexCurve(Node<TVertex> start, TVertex minX, TVertex minY, TVertex invSize) {
         var p = start;
         do {
@@ -371,6 +385,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         SortLinked(p);
     }
     
+    /// TODO: Check SortLinked
     private static void SortLinked(Node<TVertex>? list) {
         var inSize = 1;
 
@@ -432,6 +447,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         } while (numMerges > 1);
     }
     
+    /// TODO: Check EliminateHoles
     private static Node<TVertex> EliminateHoles(TVertex[] data, int[]? holeIndices, Node<TVertex> outerNode, int dim)
     {
         var queue = new List<Node<TVertex>>();
@@ -470,6 +486,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return outerNode;
     }
     
+    /// TODO: Check FilterPoints
     private static Node<TVertex>? FilterPoints(Node<TVertex>? start, Node<TVertex>? end) {
         if (start == null)
             return start;
@@ -495,6 +512,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return end;
     }
     
+    /// TODO: Check Equals
     private static bool Equals(Node<TVertex>? p1, Node<TVertex>? p2) {
         if (p1 == null || p2 == null)
         {
@@ -504,10 +522,12 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return p1.X.Equal(p2.X) && p1.Y.Equal(p2.Y);
     }
     
+    /// TODO: Check Area
     private static TVertex Area(Node<TVertex> p, Node<TVertex> q, Node<TVertex> r) {
         return (q.Y - p.Y) * (r.X - q.X) - (q.X - p.X) * (r.Y - q.Y);
     }
     
+    /// TODO: Check EliminateHole
     private static void EliminateHole(Node<TVertex> hole, Node<TVertex>? outerNode) {
         outerNode = FindHoleBridge(hole, outerNode);
         if (outerNode != null) {
@@ -519,6 +539,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         }
     }
     
+    /// TODO: Check SplitPolygon
     private static Node<TVertex> SplitPolygon(Node<TVertex> a, Node<TVertex> b) {
         var a2 = new Node<TVertex>(a.I, a.X, a.Y);
         var b2 = new Node<TVertex>(b.I, b.X, b.Y);
@@ -540,6 +561,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return b2;
     }
     
+    /// TODO: Check FindHoleBridge
     // David Eberly's algorithm for finding a bridge between hole and outer
     // polygon
     private static Node<TVertex>? FindHoleBridge(Node<TVertex> hole, Node<TVertex>? outerNode) {
@@ -605,21 +627,25 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return m;
     }
     
+    /// TODO: Check LocallyInside
     private static bool LocallyInside(Node<TVertex> a, Node<TVertex> b) {
         return Area(a.Prev!, a, a.Next!) < TVertex.Zero ? Area(a, b, a.Next!) >= TVertex.Zero && Area(a, a.Prev!, b) >= TVertex.Zero : Area(a, b, a.Prev!) < TVertex.Zero || Area(a, a.Next!, b) < TVertex.Zero;
     }
     
+    /// TODO: Check SectorContainsSector
     // whether sector in vertex m contains sector in vertex p in the same
     // coordinates
     private static bool SectorContainsSector(Node<TVertex> m, Node<TVertex> p) {
         return Area(m.Prev!, m, p.Prev!) < TVertex.Zero && Area(p.Next!, m, m.Next!) < TVertex.Zero;
     }
     
+    /// TODO: Check PointInTriangle
     private static bool PointInTriangle(TVertex ax, TVertex ay, TVertex bx, TVertex by, TVertex cx, TVertex cy, TVertex px, TVertex py) {
         return (cx - px) * (ay - py) - (ax - px) * (cy - py) >= TVertex.Zero && (ax - px) * (by - py) - (bx - px) * (ay - py) >= TVertex.Zero
                                                                         && (bx - px) * (cy - py) - (cx - px) * (by - py) >= TVertex.Zero;
     }
     
+    /// TODO: Check GetLeftmost
     private static Node<TVertex> GetLeftmost(Node<TVertex> start) {
         var p = start;
         var leftmost = start;
@@ -631,6 +657,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return leftmost;
     }
     
+    /// TODO: Check LinkedList
     private static Node<TVertex>? LinkedList(TVertex[] data, int start, int end, int dim, bool clockwise) {
         Node<TVertex>? last = null;
         if (clockwise == (SignedArea(data, start, end, dim) > TVertex.Zero)) {
@@ -650,6 +677,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return last;
     }
     
+    /// TODO: Check RemoveNode
     private static void RemoveNode(Node<TVertex> p) {
         p.Next!.Prev = p.Prev;
         p.Prev!.Next = p.Next;
@@ -662,6 +690,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         }
     }
     
+    /// TODO: Check InsertNode
     private static Node<TVertex> InsertNode(int i, TVertex x, TVertex y, Node<TVertex>? last) {
         var p = new Node<TVertex>(i, x, y);
 
@@ -677,6 +706,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return p;
     }
     
+    /// TODO: Check SignedArea
     private static TVertex SignedArea(TVertex[] data, int start, int end, int dim) {
         var sum = TVertex.Zero;
         var j = end - dim;
