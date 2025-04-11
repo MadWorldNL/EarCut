@@ -94,6 +94,8 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return triangles;
     }
     
+    /// TODO: Add deviation
+    
     /// TODO: Check EarCutLinked
     private static void EarCutLinked(Node<TVertex>? ear, List<int> triangles, int dim, TVertex minX, TVertex minY, TVertex invSize, int pass) {
         if (ear == null)
@@ -706,7 +708,6 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return p;
     }
     
-    /// TODO: Check SignedArea
     private static TVertex SignedArea(TVertex[] data, int start, int end, int dim) {
         var sum = TVertex.Zero;
         var j = end - dim;
