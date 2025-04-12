@@ -153,9 +153,7 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         return polygonArea == TVertex.Zero && trianglesArea == TVertex.Zero ? TVertex.Zero :
             TVertex.Abs((trianglesArea - polygonArea) / polygonArea);
     }
-    
-    /// TODO: Add deviation
-    
+
     /// TODO: Check EarCutLinked
     private static void EarCutLinked(Node<TVertex>? ear, List<int> triangles, int dim, TVertex minX, TVertex minY, TVertex invSize, int pass) {
         if (ear == null)
