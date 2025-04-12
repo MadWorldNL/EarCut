@@ -13,7 +13,7 @@
 
     <PropertyGroup>
         <PackageId>MadWorldNL.EarCut</PackageId>
-        <Version>1.0.2</Version>
+        <Version>1.1.0</Version>
         <Authors>MadWorldNL</Authors>
         <Owners>MadWorldNL</Owners>
         <Description>
@@ -25,6 +25,7 @@
         <RepositoryUrl>https://github.com/MadWorldNL/EarCut</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageReleaseNotes>
+            v1.1.0: Add deviation to verify the completeness of the triangulation
             v1.0.2: Resolved an issue where XML documentation comments were not included in the NuGet package.
             v1.0.1: Cleaner way to call the Earcut method
             v1.0.0: Official release
