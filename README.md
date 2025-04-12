@@ -49,6 +49,7 @@ List<int> triangles = Earcut.Tessellate(new double[] { 0, 0, 100, 0, 100, 100, 0
 List<int> triangles = Earcut.Tessellate(new double[] { 10, 0, 1, 0, 50, 2, 60, 60, 3, 70, 10, 4 }, null, 3);
 // [1,0,3, 3,2,1]
 ```
+If you pass a single vertice as a hole, Earcut treats it as a Steiner point.
 
 Note that Earcut is a **2D** triangulation algorithm, and handles 3D data as if it was projected onto the XY plane (with Z component ignored).
 
@@ -61,5 +62,3 @@ var deviation = Earcut.Deviation(vertices, triangles, null, 2);
 ```
 
 Returns the relative difference between the total area of triangles and the area of the input polygon. 0 means the triangulation is fully correct.
-
-If you pass a single vertice as a hole, Earcut treats it as a Steiner point.
