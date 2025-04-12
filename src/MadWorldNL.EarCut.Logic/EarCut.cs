@@ -21,6 +21,20 @@ public static class EarCut
     {
         return EarCut<TVertex>.Tessellate(data, holeIndices, dim);
     }
+
+    /// <summary>
+    /// return a percentage difference between the polygon area and its triangulation area;
+    /// used to verify correctness of triangulation
+    /// </summary>
+    /// <param name="data">is a flat array of vertex coordinates like [x0,y0, x1,y1, x2,y2, ...].</param>
+    /// <param name="triangles">List containing groups of three vertex indices in the resulting array forms a triangle.</param>
+    /// <param name="holeIndices">is an optional array of hole indices if any (e.g. [5, 8] for a 12-vertex input would mean one hole with vertices 5-7 and another with 8-11).</param>
+    /// <param name="dim">is the number of coordinates per vertex in the input array. Only two are used for triangulation (`x` and `y`), and the rest are ignored.</param>
+    /// <returns>The percentage difference between the original and triangulated areas.</returns>
+    public static TVertex Deviation<TVertex>(TVertex[]? data, List<int> triangles, int[]? holeIndices = null, int dim = 2) where TVertex : INumber<TVertex>, IMinMaxValue<TVertex>
+    {
+        return EarCut<TVertex>.Deviation(data, triangles, holeIndices, dim);
+    }
 }
 
 /// <summary>
@@ -92,6 +106,52 @@ public static class EarCut<TVertex> where TVertex : INumber<TVertex>, IMinMaxVal
         EarCutLinked(outerNode, triangles, dim, minX, minY, invSize, int.MinValue);
 
         return triangles;
+    }
+
+    /// <summary>
+    /// return a percentage difference between the polygon area and its triangulation area;
+    /// used to verify correctness of triangulation
+    /// </summary>
+    /// <param name="data">is a flat array of vertex coordinates like [x0,y0, x1,y1, x2,y2, ...].</param>
+    /// <param name="triangles">List containing groups of three vertex indices in the resulting array forms a triangle.</param>
+    /// <param name="holeIndices">is an optional array of hole indices if any (e.g. [5, 8] for a 12-vertex input would mean one hole with vertices 5-7 and another with 8-11).</param>
+    /// <param name="dim">is the number of coordinates per vertex in the input array. Only two are used for triangulation (`x` and `y`), and the rest are ignored.</param>
+    /// <returns>The percentage difference between the original and triangulated areas.</returns>
+    public static TVertex Deviation(TVertex[]? data, List<int> triangles, int[]? holeIndices = null, int dim = 2)
+    {
+        if (data == null)
+        {
+            return -TVertex.One;
+        }
+        
+        var hasHoles = holeIndices is { Length: > 0 };
+        var outerLen = hasHoles ? holeIndices![0] * dim : data.Length;
+        
+        var polygonArea = TVertex.Abs(SignedArea(data, 0, outerLen, dim));
+        if (hasHoles)
+        {
+            for (var i = 0; i < holeIndices!.Length; i++)
+            {
+                var start = holeIndices[i] * dim;
+                var end = i < holeIndices.Length - 1 ? holeIndices[i + 1] * dim : data.Length;
+                polygonArea -= TVertex.Abs(SignedArea(data, start, end, dim));
+            }
+        }
+        
+        var trianglesArea = TVertex.Zero;
+        for (var i = 0; i < triangles.Count; i += 3)
+        {
+            var a = triangles[i] * dim;
+            var b = triangles[i + 1] * dim;
+            var c = triangles[i + 2] * dim;
+            trianglesArea += TVertex.Abs(
+                (data[a] - data[c]) * (data[b + 1] - data[a + 1]) -
+                (data[a] - data[b]) * (data[c + 1] - data[a + 1])
+            );
+        }
+        
+        return polygonArea == TVertex.Zero && trianglesArea == TVertex.Zero ? TVertex.Zero :
+            TVertex.Abs((trianglesArea - polygonArea) / polygonArea);
     }
     
     /// TODO: Add deviation
