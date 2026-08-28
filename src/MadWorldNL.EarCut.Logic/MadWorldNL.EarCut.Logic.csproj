@@ -1,9 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
         <RootNamespace>MadWorldNL.EarCut.Logic</RootNamespace>
         <AssemblyName>$(RootNamespace)</AssemblyName>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -13,7 +10,7 @@
 
     <PropertyGroup>
         <PackageId>MadWorldNL.EarCut</PackageId>
-        <Version>1.1.0</Version>
+        <Version>1.2.0</Version>
         <Authors>MadWorldNL</Authors>
         <Owners>MadWorldNL</Owners>
         <Description>
@@ -25,6 +22,7 @@
         <RepositoryUrl>https://github.com/MadWorldNL/EarCut</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageReleaseNotes>
+            v1.2.0: Add support for dotnet 10
             v1.1.0: Add deviation to verify the completeness of the triangulation
             v1.0.2: Resolved an issue where XML documentation comments were not included in the NuGet package.
             v1.0.1: Cleaner way to call the Earcut method
@@ -44,7 +42,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
+      <PackageReference Include="Microsoft.SourceLink.GitHub">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
